@@ -12,7 +12,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 glass-panel border-b border-gray-100/50">
+    <nav className="sticky top-0 z-50 glass-panel border-b border-stone-200/50">
       <div className="container mx-auto px-6 max-w-7xl">
         <div className="flex justify-between h-20">
           <div className="flex items-center">
@@ -20,7 +20,7 @@ const Navbar = () => {
               <div className="bg-gradient-to-br from-indigo-500 to-fuchsia-500 p-2 rounded-xl text-white shadow-lg group-hover:scale-105 transition-transform">
                 <Package size={24} strokeWidth={2.5} />
               </div>
-              <span className="font-extrabold text-2xl tracking-tight text-gray-900">
+              <span className="font-extrabold text-2xl tracking-tight text-stone-800">
                 Inventory<span className="premium-gradient-text">Pro</span>
               </span>
             </Link>
@@ -34,11 +34,11 @@ const Navbar = () => {
                     to={item.path}
                     className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
                       isActive
-                        ? 'bg-indigo-50 text-indigo-600 shadow-sm ring-1 ring-indigo-100/50'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
+                        ? 'bg-rose-50 text-rose-500 shadow-sm ring-1 ring-indigo-100/50'
+                        : 'text-stone-400 hover:bg-[#fdfbf7] hover:text-stone-800 hover:shadow-sm'
                     }`}
                   >
-                    <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-rose-500' : 'text-stone-300'}`} strokeWidth={isActive ? 2.5 : 2} />
                     {item.name}
                   </Link>
                 );
