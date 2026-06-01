@@ -9,6 +9,8 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [viewOrder, setViewOrder] = useState(null);
   const [error, setError] = useState(null);
   
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
@@ -39,6 +41,16 @@ const Orders = () => {
     const newItems = [...orderItems];
     newItems[index][field] = value;
     setOrderItems(newItems);
+  };
+
+  const handleViewOrder = async (orderId) => {
+    try {
+      const res = await orderAPI.getById(orderId);
+      setViewOrder(res.data);
+      setIsViewModalOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch order details", err);
+    }
   };
 
   const addItem = () => {
@@ -174,7 +186,7 @@ const Orders = () => {
                     </td>
                     <td className="p-5 font-black text-gray-900">${order.total_amount.toFixed(2)}</td>
                     <td className="p-5 text-right flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="View Details">
+                      <button onClick={() => handleViewOrder(order.id)} className="p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="View Details">
                         <Eye size={18} />
                       </button>
                     </td>
@@ -277,6 +289,61 @@ const Orders = () => {
                   Confirm Order <ArrowRight size={18} />
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isViewModalOpen && viewOrder && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in border border-gray-100 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg"><Eye size={20} /></div>
+                <h2 className="text-2xl font-black text-gray-900">Order Details</h2>
+              </div>
+              <span className="font-mono font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">ORD-{viewOrder.id.toString().padStart(5, '0')}</span>
+            </div>
+            
+            <div className="p-6 overflow-y-auto grow space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 p-4 rounded-2xl">
+                  <p className="text-xs font-bold text-gray-500 uppercase">Customer</p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{getCustomerName(viewOrder.customer_id)}</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-2xl">
+                  <p className="text-xs font-bold text-gray-500 uppercase">Date</p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">
+                    {new Date(viewOrder.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-3 border-b pb-2">Purchased Items</h3>
+                <div className="space-y-3">
+                  {viewOrder.items.map((item, idx) => {
+                    const product = products.find(p => p.id === item.product_id);
+                    return (
+                      <div key={idx} className="flex justify-between items-center p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div>
+                          <p className="font-bold text-gray-900">{product ? product.name : 'Unknown Product'}</p>
+                          <p className="text-sm text-gray-500">{item.quantity} x ${item.price_at_purchase.toFixed(2)}</p>
+                        </div>
+                        <p className="font-black text-gray-900">${(item.quantity * item.price_at_purchase).toFixed(2)}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-100 bg-gray-50 shrink-0 flex justify-between items-center">
+               <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase">Total Amount</p>
+                  <p className="text-2xl font-black text-purple-600">${viewOrder.total_amount.toFixed(2)}</p>
+               </div>
+               <button onClick={() => setIsViewModalOpen(false)} className="px-6 py-2.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-colors">Close</button>
             </div>
           </div>
         </div>
