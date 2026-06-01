@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Users, ShoppingCart, TrendingUp, Activity } from 'lucide-react';
+import { Package, Users, ShoppingCart, TrendingUp, Activity, AlertTriangle } from 'lucide-react';
 import { productAPI, customerAPI, orderAPI } from '../services/api';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -45,7 +45,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({ products: 0, customers: 0, orders: 0, revenue: 0 });
+  const [stats, setStats] = useState({ products: 0, customers: 0, orders: 0, revenue: 0, lowStock: 0 });
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,11 +61,15 @@ const Dashboard = () => {
         const orders = ordersRes.data;
         const revenue = orders.reduce((sum, order) => sum + order.total_amount, 0);
 
+        const products = productsRes.data;
+        const lowStockCount = products.filter(p => p.stock <= 5).length;
+
         setStats({
-          products: productsRes.data.length,
+          products: products.length,
           customers: customersRes.data.length,
           orders: orders.length,
-          revenue: revenue.toFixed(2)
+          revenue: revenue.toFixed(2),
+          lowStock: lowStockCount
         });
 
         // Process data for the chart: Aggregate revenue by date
@@ -134,7 +138,7 @@ const Dashboard = () => {
         <StatCard delay={0} title="Total Products" value={stats.products} icon={Package} gradient="from-blue-500 to-cyan-400" linkTo="/products" />
         <StatCard delay={100} title="Active Customers" value={stats.customers} icon={Users} gradient="from-emerald-400 to-teal-500" linkTo="/customers" />
         <StatCard delay={200} title="Completed Orders" value={stats.orders} icon={ShoppingCart} gradient="from-indigo-500 to-purple-500" linkTo="/orders" />
-        <StatCard delay={300} title="Gross Revenue" value={`$${stats.revenue}`} icon={TrendingUp} gradient="from-amber-400 to-orange-500" linkTo="/orders" />
+        <StatCard delay={300} title="Low Stock Items" value={stats.lowStock} icon={AlertTriangle} gradient="from-rose-400 to-red-500" linkTo="/products" />
       </div>
 
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">

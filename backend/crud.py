@@ -140,3 +140,16 @@ def create_order(db: Session, order: schemas.OrderCreate):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to create order: {str(e)}")
+
+def delete_order(db: Session, order_id: int):
+    db_order = get_order(db, order_id)
+    if db_order:
+        # Restore stock for each item in the order before deleting
+        for item in db_order.items:
+            product = get_product(db, item.product_id)
+            if product:
+                product.stock += item.quantity
+        
+        db.delete(db_order)
+        db.commit()
+    return db_order
