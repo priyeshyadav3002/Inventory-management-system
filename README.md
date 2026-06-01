@@ -83,4 +83,3 @@ Here is a glimpse of the application interface:
 | ![Customers](assets/customers.png) | ![Orders](assets/orders.png) |
 
 ---
-*Developed as a candidate assessment project fulfilling all required instructions.*
