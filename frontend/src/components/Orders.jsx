@@ -53,6 +53,18 @@ const Orders = () => {
     }
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    if (window.confirm("Are you sure you want to delete this order? This will restore the stock to the products.")) {
+      try {
+        await orderAPI.delete(orderId);
+        fetchData();
+      } catch (err) {
+        console.error("Failed to delete order", err);
+        alert("Failed to delete order");
+      }
+    }
+  };
+
   const addItem = () => {
     setOrderItems([...orderItems, { product_id: '', quantity: 1 }]);
   };
@@ -188,6 +200,9 @@ const Orders = () => {
                     <td className="p-5 text-right flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => handleViewOrder(order.id)} className="p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="View Details">
                         <Eye size={18} />
+                      </button>
+                      <button onClick={() => handleDeleteOrder(order.id)} className="p-2 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Delete Order">
+                        <Trash2 size={18} />
                       </button>
                     </td>
                   </tr>
