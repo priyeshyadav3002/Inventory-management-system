@@ -18,14 +18,15 @@ const Orders = () => {
 
   const fetchData = async () => {
     try {
-      const [ordersRes, productsRes, customersRes] = await Promise.all([
+      const [ordersRes, productsRes, customersRes] = await Promise.allSettled([
         orderAPI.getAll(),
         productAPI.getAll(),
         customerAPI.getAll()
       ]);
-      setOrders(ordersRes.data);
-      setProducts(productsRes.data);
-      setCustomers(customersRes.data);
+      
+      if (ordersRes.status === 'fulfilled') setOrders(ordersRes.value.data);
+      if (productsRes.status === 'fulfilled') setProducts(productsRes.value.data);
+      if (customersRes.status === 'fulfilled') setCustomers(customersRes.value.data);
     } catch (err) {
       console.error(err);
     } finally {
