@@ -79,16 +79,20 @@ const Dashboard = () => {
             const today = format(new Date(), 'MMM dd');
             formattedChartData.push({ date: today, revenue: 0 });
           }
-          revenue: revenueByDate[date]
-        }));
-        
-        // If there's no data, add a couple dummy points just to show the chart structure
-        if (formattedChartData.length === 0) {
-          const today = format(new Date(), 'MMM dd');
-          formattedChartData.push({ date: today, revenue: 0 });
+
+          setChartData(formattedChartData);
+          setStats(prev => ({ ...prev, orders: orders.length, revenue: revenue.toFixed(2) }));
         }
 
-        setChartData(formattedChartData);
+        if (productsRes.status === 'fulfilled') {
+          const products = productsRes.value.data;
+          const lowStockCount = products.filter(p => p.stock <= 5).length;
+          setStats(prev => ({ ...prev, products: products.length, lowStock: lowStockCount }));
+        }
+
+        if (customersRes.status === 'fulfilled') {
+          setStats(prev => ({ ...prev, customers: customersRes.value.data.length }));
+        }
 
       } catch (error) {
         console.error("Failed to fetch dashboard stats", error);
