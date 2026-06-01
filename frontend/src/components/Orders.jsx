@@ -40,7 +40,11 @@ const Orders = () => {
 
   const handleItemChange = (index, field, value) => {
     const newItems = [...orderItems];
-    newItems[index][field] = value;
+    if (field === 'quantity') {
+      newItems[index][field] = value === '' ? '' : parseInt(value, 10);
+    } else {
+      newItems[index][field] = value;
+    }
     setOrderItems(newItems);
   };
 
@@ -85,15 +89,21 @@ const Orders = () => {
       return;
     }
     
-    const validItems = orderItems.filter(item => item.product_id !== '' && item.quantity > 0);
-    if (validItems.length === 0) {
-      setError("Please add at least one valid product");
+    const selectedItems = orderItems.filter(item => item.product_id);
+    if (selectedItems.length === 0) {
+      setError("Please add at least one product");
+      return;
+    }
+
+    const hasInvalidQuantity = selectedItems.some(item => item.quantity === '' || item.quantity < 1);
+    if (hasInvalidQuantity) {
+      setError("Quantity must be at least 1 for all products.");
       return;
     }
 
     const payload = {
       customer_id: parseInt(selectedCustomerId, 10),
-      items: validItems.map(item => ({
+      items: selectedItems.map(item => ({
         product_id: parseInt(item.product_id, 10),
         quantity: parseInt(item.quantity, 10)
       }))
