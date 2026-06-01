@@ -106,13 +106,13 @@ const Orders = () => {
       <div className="flex justify-between items-end mb-8">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">Order Management</h1>
-          <p className="text-gray-500 font-medium mt-1">Process transactions and track sales performance.</p>
+          <p className="text-gray-500 font-medium mt-1">Process orders and track sales performance.</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
           className="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center shadow-lg shadow-purple-500/30 transition-all hover:-translate-y-0.5"
         >
-          <Plus size={18} className="mr-2" strokeWidth={2.5} /> New Transaction
+          <Plus size={18} className="mr-2" strokeWidth={2.5} /> New Order
         </button>
       </div>
 
@@ -124,7 +124,7 @@ const Orders = () => {
             </div>
             <input 
               type="text" 
-              placeholder="Search by transaction ID..." 
+              placeholder="Search by order ID..." 
               className="pl-11 pr-4 py-3 w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all text-sm font-medium"
             />
           </div>
@@ -137,8 +137,8 @@ const Orders = () => {
             <div className="bg-purple-50 p-6 rounded-full mb-6">
               <ShoppingCart size={56} className="text-purple-400" strokeWidth={1.5} />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No Transactions Yet</h3>
-            <p className="text-sm max-w-sm mx-auto mb-6">You haven't processed any orders. Create your first transaction to see it here.</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No Orders Yet</h3>
+            <p className="text-sm max-w-sm mx-auto mb-6">You haven't processed any orders. Create your first order to see it here.</p>
             <button onClick={() => setIsModalOpen(true)} className="text-purple-600 font-bold hover:text-purple-800 transition-colors">Create First Order &rarr;</button>
           </div>
         ) : (
@@ -146,7 +146,7 @@ const Orders = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-100">
-                  <th className="p-5">Transaction ID</th>
+                  <th className="p-5">Order ID</th>
                   <th className="p-5">Customer</th>
                   <th className="p-5">Date Processed</th>
                   <th className="p-5">Status</th>
@@ -158,7 +158,7 @@ const Orders = () => {
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50/80 transition-colors group">
                     <td className="p-5 font-mono font-bold text-indigo-600">
-                      TRX-{order.id.toString().padStart(5, '0')}
+                      ORD-{order.id.toString().padStart(5, '0')}
                     </td>
                     <td className="p-5 text-sm font-bold text-gray-900">
                       {getCustomerName(order.customer_id)}
@@ -191,7 +191,7 @@ const Orders = () => {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-fade-in border border-gray-100 flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-gray-100 bg-gray-50/50 shrink-0 flex items-center gap-3">
               <div className="p-2 bg-purple-100 text-purple-600 rounded-lg"><ShoppingCart size={20} /></div>
-              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Process New Transaction</h2>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Process New Order</h2>
             </div>
             
             <div className="p-6 overflow-y-auto grow">
@@ -274,7 +274,7 @@ const Orders = () => {
               <div className="flex gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-3 text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 font-bold transition-colors">Cancel</button>
                 <button onClick={handleSubmit} className="px-6 py-3 text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl hover:from-purple-700 hover:to-indigo-700 font-bold shadow-lg shadow-purple-500/30 flex items-center gap-2 transition-all hover:scale-105">
-                  Confirm Transaction <ArrowRight size={18} />
+                  Confirm Order <ArrowRight size={18} />
                 </button>
               </div>
             </div>

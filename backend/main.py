@@ -50,6 +50,21 @@ def read_product(product_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Product not found")
     return db_product
 
+@app.put("/products/{product_id}", response_model=schemas.Product)
+def update_product(product_id: int, product: schemas.ProductUpdate, db: Session = Depends(get_db)):
+    db_product = crud.get_product(db, product_id=product_id)
+    if db_product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return crud.update_product(db=db, db_product=db_product, product=product)
+
+@app.delete("/products/{product_id}")
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    db_product = crud.get_product(db, product_id=product_id)
+    if db_product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    crud.delete_product(db=db, product_id=product_id)
+    return {"ok": True}
+
 # --- Customers ---
 @app.post("/customers/", response_model=schemas.Customer)
 def create_customer(customer: schemas.CustomerCreate, db: Session = Depends(get_db)):
@@ -69,6 +84,21 @@ def read_customer(customer_id: int, db: Session = Depends(get_db)):
     if db_customer is None:
         raise HTTPException(status_code=404, detail="Customer not found")
     return db_customer
+
+@app.put("/customers/{customer_id}", response_model=schemas.Customer)
+def update_customer(customer_id: int, customer: schemas.CustomerUpdate, db: Session = Depends(get_db)):
+    db_customer = crud.get_customer(db, customer_id=customer_id)
+    if db_customer is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    return crud.update_customer(db=db, db_customer=db_customer, customer=customer)
+
+@app.delete("/customers/{customer_id}")
+def delete_customer(customer_id: int, db: Session = Depends(get_db)):
+    db_customer = crud.get_customer(db, customer_id=customer_id)
+    if db_customer is None:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    crud.delete_customer(db=db, customer_id=customer_id)
+    return {"ok": True}
 
 # --- Orders ---
 @app.post("/orders/", response_model=schemas.Order)

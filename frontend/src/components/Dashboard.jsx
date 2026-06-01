@@ -2,16 +2,20 @@ import { useState, useEffect } from 'react';
 import { Package, Users, ShoppingCart, TrendingUp, Activity } from 'lucide-react';
 import { productAPI, customerAPI, orderAPI } from '../services/api';
 import { Link } from 'react-router-dom';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { format, parseISO } from 'date-fns';
 
-const StatCard = ({ title, value, icon: Icon, gradient, linkTo, delay }) => (
+const StatCard = ({ title, value, icon: Icon, gradient, linkTo, delay, growth }) => (
   <div className={`bg-white rounded-3xl p-6 border border-gray-100/50 shadow-sm card-hover-effect animate-fade-in`} style={{ animationDelay: `${delay}ms` }}>
     <div className="flex items-center justify-between mb-4">
       <div className={`p-3.5 rounded-2xl bg-gradient-to-br ${gradient} shadow-sm`}>
         <Icon size={24} className="text-white" strokeWidth={2.5} />
       </div>
-      <div className="px-2.5 py-1 bg-green-50 text-green-600 rounded-full text-xs font-bold tracking-wide">
-        +12.5%
-      </div>
+      {growth && (
+        <div className="px-2.5 py-1 bg-green-50 text-green-600 rounded-full text-xs font-bold tracking-wide">
+          {growth}
+        </div>
+      )}
     </div>
     <div>
       <h3 className="text-4xl font-black text-gray-900 tracking-tight mb-1">{value}</h3>
@@ -26,8 +30,23 @@ const StatCard = ({ title, value, icon: Icon, gradient, linkTo, delay }) => (
   </div>
 );
 
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-4 rounded-2xl shadow-xl border border-gray-100">
+        <p className="text-gray-500 font-bold mb-1">{label}</p>
+        <p className="text-indigo-600 font-black text-lg">
+          ${payload[0].value.toFixed(2)}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 const Dashboard = () => {
   const [stats, setStats] = useState({ products: 0, customers: 0, orders: 0, revenue: 0 });
+  const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,6 +67,35 @@ const Dashboard = () => {
           orders: orders.length,
           revenue: revenue.toFixed(2)
         });
+
+        // Process data for the chart: Aggregate revenue by date
+        const revenueByDate = {};
+        
+        orders.forEach(order => {
+          if (order.created_at) {
+            // Format to just the date part for grouping (e.g. "Jun 01")
+            const dateStr = format(parseISO(order.created_at), 'MMM dd');
+            if (!revenueByDate[dateStr]) {
+              revenueByDate[dateStr] = 0;
+            }
+            revenueByDate[dateStr] += order.total_amount;
+          }
+        });
+
+        // Convert the aggregated object into an array suitable for Recharts
+        const formattedChartData = Object.keys(revenueByDate).map(date => ({
+          date,
+          revenue: revenueByDate[date]
+        }));
+        
+        // If there's no data, add a couple dummy points just to show the chart structure
+        if (formattedChartData.length === 0) {
+          const today = format(new Date(), 'MMM dd');
+          formattedChartData.push({ date: today, revenue: 0 });
+        }
+
+        setChartData(formattedChartData);
+
       } catch (error) {
         console.error("Failed to fetch dashboard stats", error);
       } finally {
@@ -92,11 +140,24 @@ const Dashboard = () => {
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-8 card-hover-effect">
           <h2 className="text-xl font-bold mb-6 text-gray-900 flex items-center gap-2">
-            <Activity className="text-indigo-500" /> Recent Activity Overview
+            <Activity className="text-indigo-500" /> Revenue Over Time
           </h2>
-          <div className="h-64 flex flex-col justify-center items-center rounded-2xl bg-gradient-to-tr from-gray-50 to-indigo-50/30 border border-gray-100 border-dashed">
-            <TrendingUp size={48} className="text-indigo-200 mb-4" />
-            <p className="text-gray-500 font-medium">Advanced chart visualizations will render here</p>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12, fontWeight: 600}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12, fontWeight: 600}} tickFormatter={(value) => `$${value}`} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area type="monotone" dataKey="revenue" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
         <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl card-hover-effect">

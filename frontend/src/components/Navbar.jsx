@@ -8,7 +8,7 @@ const Navbar = () => {
     { name: 'Overview', path: '/', icon: LayoutDashboard },
     { name: 'Inventory', path: '/products', icon: Package },
     { name: 'Customers', path: '/customers', icon: Users },
-    { name: 'Transactions', path: '/orders', icon: ShoppingCart },
+    { name: 'Orders', path: '/orders', icon: ShoppingCart },
   ];
 
   return (

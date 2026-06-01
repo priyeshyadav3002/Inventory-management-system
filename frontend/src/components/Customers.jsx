@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { customerAPI } from '../services/api';
 import { Plus, Search, Edit2, Trash2, Mail, Phone, Users, MapPin } from 'lucide-react';
+import { format } from 'date-fns';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '' });
   const [error, setError] = useState(null);
 
@@ -26,16 +28,50 @@ const Customers = () => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  const openAddModal = () => {
+    setEditingId(null);
+    setFormData({ name: '', email: '', phone: '', address: '' });
+    setError(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (customer) => {
+    setEditingId(customer.id);
+    setFormData({ 
+      name: customer.name, 
+      email: customer.email, 
+      phone: customer.phone || '', 
+      address: customer.address || '' 
+    });
+    setError(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this customer?")) {
+      try {
+        await customerAPI.delete(id);
+        fetchCustomers();
+      } catch (err) {
+        alert("Failed to delete customer. They might have existing orders.");
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     try {
-      await customerAPI.create(formData);
+      if (editingId) {
+        await customerAPI.update(editingId, formData);
+      } else {
+        await customerAPI.create(formData);
+      }
       setIsModalOpen(false);
       setFormData({ name: '', email: '', phone: '', address: '' });
       fetchCustomers();
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to create customer");
+      setError(err.response?.data?.detail || "Failed to save customer");
     }
   };
 
@@ -47,7 +83,7 @@ const Customers = () => {
           <p className="text-gray-500 font-medium mt-1">Manage your customer relationships and contact info.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={openAddModal}
           className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center shadow-lg shadow-emerald-500/30 transition-all hover:-translate-y-0.5"
         >
           <Plus size={18} className="mr-2" strokeWidth={2.5} /> Add Customer
@@ -77,7 +113,7 @@ const Customers = () => {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No Customers Found</h3>
             <p className="text-sm max-w-sm mx-auto mb-6">You don't have any customers in your database yet. Add one to start processing orders.</p>
-            <button onClick={() => setIsModalOpen(true)} className="text-emerald-600 font-bold hover:text-emerald-800 transition-colors">Add First Customer &rarr;</button>
+            <button onClick={openAddModal} className="text-emerald-600 font-bold hover:text-emerald-800 transition-colors">Add First Customer &rarr;</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -87,6 +123,7 @@ const Customers = () => {
                   <th className="p-5">Customer Profile</th>
                   <th className="p-5">Contact Details</th>
                   <th className="p-5">Location</th>
+                  <th className="p-5">Registered</th>
                   <th className="p-5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -124,10 +161,13 @@ const Customers = () => {
                         <span className="truncate">{customer.address || <span className="text-gray-400 italic">No address provided</span>}</span>
                       </div>
                     </td>
+                    <td className="p-5 text-sm font-medium text-gray-500">
+                      {customer.created_at ? format(new Date(customer.created_at), 'MMM d, yyyy') : 'N/A'}
+                    </td>
                     <td className="p-5 text-right">
                       <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-2 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"><Edit2 size={16} /></button>
-                        <button className="p-2 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"><Trash2 size={16} /></button>
+                        <button onClick={() => openEditModal(customer)} className="p-2 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"><Edit2 size={16} /></button>
+                        <button onClick={() => handleDelete(customer.id)} className="p-2 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"><Trash2 size={16} /></button>
                       </div>
                     </td>
                   </tr>
@@ -142,7 +182,7 @@ const Customers = () => {
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in border border-gray-100">
             <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Register Customer</h2>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">{editingId ? 'Edit Customer' : 'Register Customer'}</h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               {error && <div className="p-4 bg-rose-50 text-rose-700 rounded-xl text-sm font-medium border border-rose-100">{error}</div>}
@@ -153,15 +193,15 @@ const Customers = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
-                  <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="jane@example.com" />
+                  <input required type="email" name="email" value={formData.email} onChange={handleChange} disabled={!!editingId} className="w-full bg-gray-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all disabled:opacity-50" placeholder="jane@example.com" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number <span className="text-gray-400 font-normal">(Optional)</span></label>
-                  <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="+1 (555) 000-0000" />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number</label>
+                  <input required type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all" placeholder="+1 (555) 123-4567" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Shipping Address <span className="text-gray-400 font-normal">(Optional)</span></label>
-                  <textarea name="address" value={formData.address} onChange={handleChange} rows="2" className="w-full bg-gray-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all resize-none" placeholder="123 Main St, City, Country"></textarea>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Shipping Address</label>
+                  <textarea required name="address" value={formData.address} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all resize-none h-24" placeholder="123 Main St..." />
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-6 mt-4">

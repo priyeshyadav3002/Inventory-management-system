@@ -23,6 +23,26 @@ def create_product(db: Session, product: schemas.ProductCreate):
         db.rollback()
         raise HTTPException(status_code=400, detail="Product with this SKU already exists")
 
+def update_product(db: Session, db_product: models.Product, product: schemas.ProductUpdate):
+    update_data = product.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_product, key, value)
+    
+    try:
+        db.commit()
+        db.refresh(db_product)
+        return db_product
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="SKU already in use")
+
+def delete_product(db: Session, product_id: int):
+    db_product = get_product(db, product_id)
+    if db_product:
+        db.delete(db_product)
+        db.commit()
+    return db_product
+
 def get_customer(db: Session, customer_id: int):
     return db.query(models.Customer).filter(models.Customer.id == customer_id).first()
 
@@ -42,6 +62,26 @@ def create_customer(db: Session, customer: schemas.CustomerCreate):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=400, detail="Customer with this email already exists")
+
+def update_customer(db: Session, db_customer: models.Customer, customer: schemas.CustomerUpdate):
+    update_data = customer.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_customer, key, value)
+    
+    try:
+        db.commit()
+        db.refresh(db_customer)
+        return db_customer
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Email already in use")
+
+def delete_customer(db: Session, customer_id: int):
+    db_customer = get_customer(db, customer_id)
+    if db_customer:
+        db.delete(db_customer)
+        db.commit()
+    return db_customer
 
 def get_order(db: Session, order_id: int):
     return db.query(models.Order).filter(models.Order.id == order_id).first()

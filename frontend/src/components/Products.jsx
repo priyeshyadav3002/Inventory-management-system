@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { productAPI } from '../services/api';
 import { Plus, Search, Edit2, Trash2, Package } from 'lucide-react';
+import { format } from 'date-fns';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', sku: '', description: '', price: '', stock: '' });
   const [error, setError] = useState(null);
 
@@ -26,20 +28,58 @@ const Products = () => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  const openAddModal = () => {
+    setEditingId(null);
+    setFormData({ name: '', sku: '', description: '', price: '', stock: '' });
+    setError(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (product) => {
+    setEditingId(product.id);
+    setFormData({ 
+      name: product.name, 
+      sku: product.sku, 
+      description: product.description || '', 
+      price: product.price, 
+      stock: product.stock 
+    });
+    setError(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await productAPI.delete(id);
+        fetchProducts();
+      } catch (err) {
+        alert("Failed to delete product. It might be linked to existing orders.");
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     try {
-      await productAPI.create({
+      const payload = {
         ...formData,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock, 10)
-      });
+      };
+
+      if (editingId) {
+        await productAPI.update(editingId, payload);
+      } else {
+        await productAPI.create(payload);
+      }
+      
       setIsModalOpen(false);
       setFormData({ name: '', sku: '', description: '', price: '', stock: '' });
       fetchProducts();
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to create product");
+      setError(err.response?.data?.detail || "Failed to save product");
     }
   };
 
@@ -51,7 +91,7 @@ const Products = () => {
           <p className="text-gray-500 font-medium mt-1">Manage your products and track current stock levels.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={openAddModal}
           className="premium-button text-white px-5 py-2.5 rounded-xl font-bold flex items-center shadow-md"
         >
           <Plus size={18} className="mr-2" strokeWidth={2.5} /> Add Product
@@ -81,7 +121,7 @@ const Products = () => {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No Products Found</h3>
             <p className="text-sm max-w-sm mx-auto mb-6">You haven't added any products to your inventory yet. Get started by creating your first product.</p>
-            <button onClick={() => setIsModalOpen(true)} className="text-indigo-600 font-bold hover:text-indigo-800 transition-colors">Add First Product &rarr;</button>
+            <button onClick={openAddModal} className="text-indigo-600 font-bold hover:text-indigo-800 transition-colors">Add First Product &rarr;</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -92,6 +132,7 @@ const Products = () => {
                   <th className="p-5">Product Details</th>
                   <th className="p-5">Price</th>
                   <th className="p-5">Status</th>
+                  <th className="p-5">Date Added</th>
                   <th className="p-5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -120,10 +161,13 @@ const Products = () => {
                         </span>
                       </div>
                     </td>
+                    <td className="p-5 text-sm font-medium text-gray-500">
+                      {product.created_at ? format(new Date(product.created_at), 'MMM d, yyyy') : 'N/A'}
+                    </td>
                     <td className="p-5 text-right">
                       <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"><Edit2 size={16} /></button>
-                        <button className="p-2 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"><Trash2 size={16} /></button>
+                        <button onClick={() => openEditModal(product)} className="p-2 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"><Edit2 size={16} /></button>
+                        <button onClick={() => handleDelete(product.id)} className="p-2 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"><Trash2 size={16} /></button>
                       </div>
                     </td>
                   </tr>
@@ -138,7 +182,7 @@ const Products = () => {
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in border border-gray-100">
             <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Add New Product</h2>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">{editingId ? 'Edit Product' : 'Add New Product'}</h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               {error && <div className="p-4 bg-rose-50 text-rose-700 rounded-xl text-sm font-medium border border-rose-100">{error}</div>}
@@ -149,7 +193,7 @@ const Products = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">SKU Code</label>
-                  <input required type="text" name="sku" value={formData.sku} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono text-sm" placeholder="e.g. WH-100" />
+                  <input required type="text" name="sku" value={formData.sku} onChange={handleChange} disabled={!!editingId} className="w-full bg-gray-50 border-none rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono text-sm disabled:opacity-50" placeholder="e.g. WH-100" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Initial Stock</label>

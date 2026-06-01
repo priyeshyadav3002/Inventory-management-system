@@ -13,6 +13,7 @@ class Product(Base):
     description = Column(String, nullable=True)
     price = Column(Float)
     stock = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class Customer(Base):
     __tablename__ = "customers"
@@ -20,8 +21,9 @@ class Customer(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
-    phone = Column(String, nullable=True)
-    address = Column(String, nullable=True)
+    phone = Column(String, nullable=False)
+    address = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
     orders = relationship("Order", back_populates="customer")
 
