@@ -57,7 +57,7 @@ class OrderItemCreate(BaseModel):
 
 class OrderItem(BaseModel):
     id: int
-    product_id: int
+    product_id: Optional[int] = None
     quantity: int
     price_at_purchase: float
     
@@ -66,7 +66,7 @@ class OrderItem(BaseModel):
 
 # --- Order Schemas ---
 class OrderBase(BaseModel):
-    customer_id: int
+    customer_id: Optional[int] = None
 
 class OrderCreate(OrderBase):
     items: List[OrderItemCreate]
