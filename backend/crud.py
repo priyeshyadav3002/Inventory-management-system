@@ -39,6 +39,8 @@ def update_product(db: Session, db_product: models.Product, product: schemas.Pro
 def delete_product(db: Session, product_id: int):
     db_product = get_product(db, product_id)
     if db_product:
+        # Nullify foreign key references in order_items
+        db.query(models.OrderItem).filter(models.OrderItem.product_id == product_id).update({"product_id": None})
         db.delete(db_product)
         db.commit()
     return db_product
@@ -79,6 +81,8 @@ def update_customer(db: Session, db_customer: models.Customer, customer: schemas
 def delete_customer(db: Session, customer_id: int):
     db_customer = get_customer(db, customer_id)
     if db_customer:
+        # Nullify foreign key references in orders
+        db.query(models.Order).filter(models.Order.customer_id == customer_id).update({"customer_id": None})
         db.delete(db_customer)
         db.commit()
     return db_customer

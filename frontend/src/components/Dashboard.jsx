@@ -52,43 +52,33 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [productsRes, customersRes, ordersRes] = await Promise.all([
+        const [productsRes, customersRes, ordersRes] = await Promise.allSettled([
           productAPI.getAll(),
           customerAPI.getAll(),
           orderAPI.getAll()
         ]);
-        
-        const orders = ordersRes.data;
-        const revenue = orders.reduce((sum, order) => sum + order.total_amount, 0);
 
-        const products = productsRes.data;
-        const lowStockCount = products.filter(p => p.stock <= 5).length;
-
-        setStats({
-          products: products.length,
-          customers: customersRes.data.length,
-          orders: orders.length,
-          revenue: revenue.toFixed(2),
-          lowStock: lowStockCount
-        });
-
-        // Process data for the chart: Aggregate revenue by date
-        const revenueByDate = {};
-        
-        orders.forEach(order => {
-          if (order.created_at) {
-            // Format to just the date part for grouping (e.g. "Jun 01")
-            const dateStr = format(parseISO(order.created_at), 'MMM dd');
-            if (!revenueByDate[dateStr]) {
-              revenueByDate[dateStr] = 0;
+        if (ordersRes.status === 'fulfilled') {
+          const orders = ordersRes.value.data;
+          const revenue = orders.reduce((sum, order) => sum + order.total_amount, 0);
+          
+          const revenueByDate = orders.reduce((acc, order) => {
+            if (order.created_at) {
+              const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              acc[date] = (acc[date] || 0) + order.total_amount;
             }
-            revenueByDate[dateStr] += order.total_amount;
-          }
-        });
+            return acc;
+          }, {});
 
-        // Convert the aggregated object into an array suitable for Recharts
-        const formattedChartData = Object.keys(revenueByDate).map(date => ({
-          date,
+          const formattedChartData = Object.keys(revenueByDate).map(date => ({
+            date,
+            revenue: revenueByDate[date]
+          }));
+          
+          if (formattedChartData.length === 0) {
+            const today = format(new Date(), 'MMM dd');
+            formattedChartData.push({ date: today, revenue: 0 });
+          }
           revenue: revenueByDate[date]
         }));
         
