@@ -1,52 +1,86 @@
-# Inventory & Order Management System
+<div align="center">
+  
+# 📦 InventoryPro
+### Advanced Inventory & Order Management System
 
-This is a full-stack Inventory & Order Management System built with FastAPI, React, and PostgreSQL, fulfilling the assignment requirements.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://inventory-management-system-627p.vercel.app)
+[![API Status](https://img.shields.io/badge/API-Render-46E3B7?style=for-the-badge&logo=render)](https://inventory-management-system-iu4d.onrender.com)
+[![Docker Hub](https://img.shields.io/badge/Docker-Images-2496ED?style=for-the-badge&logo=docker)](https://hub.docker.com/r/priyesh390/inventory-backend)
 
-## Features
-- **Backend**: Python FastAPI with SQLAlchemy ORM and PostgreSQL.
-- **Frontend**: React (Vite) with a modern, responsive UI using Tailwind CSS v4 and Lucide React icons.
-- **Business Logic**: 
-  - Unique product SKUs and unique customer emails.
-  - Automatic stock reduction upon order placement.
-  - Validation to prevent ordering out-of-stock items.
-- **Dockerized**: Fully containerized using `Dockerfile` for both frontend and backend, orchestrated with `docker-compose`.
+*A full-stack, containerized solution designed to handle products, customers, and orders seamlessly.*
 
-## Running Locally with Docker Compose
+</div>
 
-1. **Prerequisites**: Install Docker and Docker Compose.
-2. **Start the Application**:
-   Run the following command in the root directory:
+---
+
+## 🚀 Live Links & Resources
+
+- **Live Application (Frontend)**: [https://inventory-management-system-627p.vercel.app](https://inventory-management-system-627p.vercel.app)
+- **Live API (Backend)**: [https://inventory-management-system-iu4d.onrender.com](https://inventory-management-system-iu4d.onrender.com)
+- **GitHub Repository**: [priyeshyadav3002/Inventory-management-system](https://github.com/priyeshyadav3002/Inventory-management-system)
+- **Docker Hub Images**: 
+  - [priyesh390/inventory-backend](https://hub.docker.com/r/priyesh390/inventory-backend)
+  - [priyesh390/inventory-frontend](https://hub.docker.com/r/priyesh390/inventory-frontend)
+
+## 🛠️ Technology Stack
+
+### Frontend (User Interface)
+- **Framework**: React 18 & Vite
+- **Styling**: Tailwind CSS (with Glassmorphism & Custom Animations)
+- **Data Visualization**: Recharts for dynamic charts
+- **Routing**: React Router DOM
+
+### Backend (API & Business Logic)
+- **Framework**: FastAPI (High-performance Python API framework)
+- **ORM**: SQLAlchemy (Database management)
+- **Data Validation**: Pydantic v2
+- **Database**: PostgreSQL (Containerized)
+
+### DevOps & Deployment
+- **Containerization**: Docker & Docker Compose
+- **Hosting**: Vercel (Frontend) and Render (Backend & PostgreSQL Database)
+
+## ✨ Core Features & Business Rules
+
+1. **Inventory Validation**: Orders cannot be processed if product stock is insufficient.
+2. **Automatic Stock Reduction**: Creating a new order automatically deducts the exact purchased quantity from the product's available stock.
+3. **Unique Constraints**: Strictly enforces unique SKUs for products and unique email addresses for customers.
+4. **Interactive Dashboard**: Real-time calculated metrics for Gross Revenue, Total Products, Customers, and Completed Orders.
+5. **Detailed Order Tracking**: View exact purchased items, timestamps, and customer relationships directly from the UI.
+
+## 🐳 Running Locally with Docker
+
+You can spin up the entire full-stack application instantly using Docker.
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/priyeshyadav3002/Inventory-management-system.git
+   cd Inventory-management-system
+   ```
+
+2. **Start the application**:
    ```bash
    docker compose up --build -d
    ```
+
 3. **Access the Application**:
-   - **Frontend UI**: http://localhost:3000
-   - **Backend API Docs**: http://localhost:8000/docs
+   - **Frontend UI**: [http://localhost:3000](http://localhost:3000)
+   - **Backend API Docs (Swagger UI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
    - **PostgreSQL Database**: Accessible internally on port 5432.
 
-## Deployment Instructions
+*(To stop the application, run `docker compose down`)*
 
-### Backend & Database (e.g., Render)
-1. **Database**: Create a free PostgreSQL database on Render. Copy the Internal or External Database URL.
-2. **Backend**:
-   - Create a new "Web Service" on Render.
-   - Connect your GitHub repository.
-   - Set the Root Directory to `backend/`.
-   - Set the Environment to `Docker`.
-   - Add the Environment Variable `DATABASE_URL` with your PostgreSQL database URL.
-   - Deploy the service.
+## 📸 Application Gallery
 
-### Frontend (e.g., Vercel)
-1. Import your GitHub repository into Vercel.
-2. Set the Framework Preset to `Vite`.
-3. Set the Root Directory to `frontend/`.
-4. Add the Environment Variable `VITE_API_URL` pointing to your deployed backend URL (e.g., `https://your-backend.onrender.com`).
-5. Deploy.
+Here is a glimpse of the application interface:
 
-### Delivery
-Submit the following links as requested:
-- **GitHub Repository Link**: [Your Repo Link]
-- **Docker Image Link**: [Your Docker Hub Image Link]
-- **Live Application URLs**: 
-  - Frontend: [Your Vercel Link]
-  - Backend API: [Your Render Link]
+| Overview Dashboard | Inventory Catalog |
+|:---:|:---:|
+| ![Dashboard](assets/dashboard.png) | ![Inventory](assets/inventory.png) |
+
+| Customer Directory | Order Management |
+|:---:|:---:|
+| ![Customers](assets/customers.png) | ![Orders](assets/orders.png) |
+
+---
+*Developed as a candidate assessment project fulfilling all required instructions.*
